@@ -3,6 +3,14 @@ uuid = "8e24210c-274c-48be-9282-16dd31a72845"
 authors = ["HaneWall <48854946+HaneWall@users.noreply.github.com> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+ProgressLogging = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
 [compat]
 julia = "1"
 
