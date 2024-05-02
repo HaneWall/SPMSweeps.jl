@@ -81,18 +81,18 @@ all_cb_sweep = CallbackSet(sweep_cb, filter_cb)
 t_span = (0, 800_000)
 
 ## sweep forward 
-#sweep_fwd_prob = ODEProblem(f_RHS, initial_condition, t_span, fwd_problem)
-#sweep_fwd_sol = solve(sweep_fwd_prob, callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
+sweep_fwd_prob = ODEProblem(f_RHS, initial_condition, t_span, fwd_problem)
+sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
 
 ## sweep backward
-#sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
-#sweep_bwd_sol = solve(sweep_bwd_prob, callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
+sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
+sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
 
 ## control sweep 
 control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 600_000), pll_problem)
-control_sol = solve(control_prob, callback=all_cb_control, save_everystep=false, maxiters=20_000_000)
+control_sol = solve(control_prob, Tsit5(), callback=all_cb_control, save_everystep=false, maxiters=20_000_000)
 
 
 
