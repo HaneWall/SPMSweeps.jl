@@ -1,4 +1,5 @@
-using SPMsweeps, StaticArrays, DifferentialEquations, CairoMakie, LinearAlgebra, DiffEqCallbacks
+using SPMsweeps
+using StaticArrays, DifferentialEquations, CairoMakie, LinearAlgebra, DiffEqCallbacks, ProgressLogging, BenchmarkTools
 
 initial_condition = SVector(0., 0., 0.)
 
@@ -12,20 +13,20 @@ f = 14
 
 # time params sweep
 Δ_t_filt = 0.05
-Δ_t_sweep = 3_000.
+Δ_t_sweep = 100.
 μ_sweep = 0.05
 
 # time params control
 Δ_t_ctrl = 0.05 # timestep for each control step
 μ_ctrl = 0.05 
-Δ_t_checker = 1500. # timestep in which we check convergence 
+Δ_t_checker = 60. # timestep in which we check convergence 
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
 harms = [1., 2., 3., 4.] # respected higher harmonics (DC always automatically included)
-K_P = 12.5
+K_P = 10.
 K_I = 1.
-K_D = 0.
+K_D = 5.
 τ = 2.
 int_min = -1.0
 int_max =  4.
@@ -48,7 +49,7 @@ FILT_bwd = LMS_Algorithm(μ_sweep, harms)
 CHECK_bwd = Constant_Time_Check()
 
 # targets for control (not relevant for sweeps)
-TARGETS = collect(range(-0.4, -2.9, length=30))
+TARGETS = collect(range(-0.5, -2.8, length=30))
 err = 0.02
 
 # frequncy array that we would like to sweep through (not relevant for control)
@@ -77,12 +78,12 @@ sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_every
 
 ## sweep backward
 sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
-sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(),callback=all_cb_sweep, save_everystep=false, maxiters=3_000_000)
+@time sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(),callback=all_cb_sweep, save_everystep=false, maxiters=3_000_000)
 
 
 ## control sweep 
-control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 450_000), pll_problem)
-control_sol = solve(control_prob, Tsit5(), callback=all_cb_control, save_everystep=false, maxiters=20_000_000)
+control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 100_000), pll_problem)
+@time control_sol = solve(control_prob, Tsit5(), callback=all_cb_control, save_everystep=false, maxiters=3_000_000)
 
 
 

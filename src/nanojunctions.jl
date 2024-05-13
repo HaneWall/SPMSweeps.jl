@@ -160,17 +160,17 @@ mutable struct Duffing_oscillator <: Nanojunction
 end
 
 
-function f_RHS(x, A::Duffing_oscillator, t)
+function f_RHS(x::SVector, A::Duffing_oscillator, t)
   dx = x[2] # displacement
   dy = A.f * sin(x[3]) - A.k_1 * x[1] - A.k_2 * x[2] - A.k_3 * x[1]^3 # velocity
   dz = A.Ω_s # instantanoes phase
-  return SVector(dx, dy, dz)
+  return @SVector [dx, dy, dz]
 end
 
-function f_RHS_Ctrl(x, A::Duffing_oscillator, t)
+function f_RHS_Ctrl(x::SVector, A::Duffing_oscillator, t)
   dx = x[2] # displacement
   dy = A.f * sin(x[3]) - A.k_1 * x[1] - A.k_2 * x[2] - A.k_3 * x[1]^3 # velocity
   dz = A.Ω_s + A.ctrl.output # instantanoes phase
-  return SVector(dx, dy, dz)
+  return @SVector [dx, dy, dz]
 end
 

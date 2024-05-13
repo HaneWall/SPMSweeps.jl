@@ -26,17 +26,17 @@ nu_t = 0.3
 μ_sweep = 0.05
 
 # time params control
-Δ_t_ctrl = 0.05 # timestep for each control step
+Δ_t_ctrl = 0.08 # timestep for each control step
 μ_ctrl = 0.05 
-Δ_t_checker = 4000. # timestep in which we check convergence 
+Δ_t_checker = 400. # timestep in which we check convergence 
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
 harms = [1., 2., 3., 4.] # respected higher harmonics (DC always automatically included)
-K_P = 1.
+K_P = 0.1
 K_I = 0.001
-K_D = 0.
-τ = 2.
+K_D = 1.5
+τ = 5.
 int_min = -0.01
 int_max =  0.01
 ctrl_min = -0.011
@@ -58,7 +58,7 @@ FILT_bwd = LMS_Algorithm(μ_sweep, harms)
 CHECK_bwd = Constant_Time_Check()
 
 # targets for control (not relevant for sweeps)
-TARGETS = collect(range(-0.5, -2.6, length=120))
+TARGETS = collect(range(-0.7, -2.4, length=120))
 err = 0.02
 
 # frequncy array that we would like to sweep through (not relevant for control)
@@ -81,18 +81,18 @@ all_cb_sweep = CallbackSet(sweep_cb, filter_cb)
 t_span = (0, 800_000)
 
 ## sweep forward 
-sweep_fwd_prob = ODEProblem(f_RHS, initial_condition, t_span, fwd_problem)
-sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
+#sweep_fwd_prob = ODEProblem(f_RHS, initial_condition, t_span, fwd_problem)
+#@time sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
 
 ## sweep backward
-sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
-sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
+#sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
+#sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
 
 ## control sweep 
-control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 600_000), pll_problem)
-control_sol = solve(control_prob, Tsit5(), callback=all_cb_control, save_everystep=false, maxiters=20_000_000)
+control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 100_000), pll_problem)
+@time control_sol = solve(control_prob, Tsit5(), callback=all_cb_control, save_everystep=false)
 
 
 
@@ -129,3 +129,36 @@ function plot_sweeps(ps::Array{S}; k=1) where S <: Nanojunction
   end
 
 
+
+  function plot_control(ps::Array{S}; k=1) where S <: Nanojunction
+    CairoMakie.activate!(type="svg")
+    fig = Figure(
+        size = (508, 258), 
+        fonts = (; regular = "Helvitica"), 
+        fontsize=8, 
+        backgroundcolor=:white
+    )
+    ax_a = Axis(fig[1, 1],
+        xlabel=L"\omega_d/\omega_0", 
+        ylabel=L"amplitude $k$th harmonic $A_k$", 
+        xgridvisible=false,
+        ygridvisible=false)
+    ax_phi = Axis(fig[1, 2],
+        xlabel=L"\omega_d/\omega_0", 
+        ylabel=L"phaselag $k$th harmonic $\phi_k$", 
+        xgridvisible=false,
+        ygridvisible=false)
+  
+    for p in ps
+        omega_drivings = zeros(Float64, length(p.targets))
+        phaselag_k = zeros(Float64, length(p.targets))
+        amplitude_k = zeros(Float64, length(p.targets))
+        omega_drivings .= p.matrix_harmonic_state_converged_control[1, :]
+        phaselag_k .= atan.(p.matrix_harmonic_state_converged_control[2*k+2, :], p.matrix_harmonic_state_converged_control[2*k+1, :])
+        amplitude_k .= norm.(p.matrix_harmonic_state_converged_control[2*k+2, :], p.matrix_harmonic_state_converged_control[2*k+1, :])
+        scatterlines!(ax_a, omega_drivings[1:end], amplitude_k[1:end], markersize=3, linewidth=1.5, color=(:navy, 0.4))
+        scatterlines!(ax_phi, omega_drivings[1:end], phaselag_k[1:end], markersize=3, linewidth=1.5, color=(:navy, 0.4)) 
+    end
+    fig
+  end
+  
