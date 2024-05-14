@@ -5,7 +5,7 @@ initial_condition = SVector(0., 0., 0.)
 # params from Hölscher and Schwartz
 H = 2.e-19
 a_0 = 0.3e-9
-ds = collect(range(8.5e-9, 10.5e-9, length=20))
+ds = collect(range(10.e-9, 10.5e-9, length=10))
 R= 10.e-9
 Q = 300
 k = 40
@@ -21,7 +21,7 @@ nu_t = 0.3
 # time params control
 Δ_t_ctrl = 0.05 # timestep for each control step
 μ_ctrl = 0.05 
-Δ_t_checker = 4000. # timestep in which we check convergence 
+Δ_t_checker = 700. # timestep in which we check convergence 
 
 
 # targets for control (not relevant for sweeps)
@@ -34,9 +34,9 @@ OMEGAS = collect(range(0.997, 1.003, length=80))
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
 harms = [1., 2., 3., 4.] # respected higher harmonics (DC always automatically included)
-K_P = 1.4
+K_P = 1.6
 K_I = 0.001
-K_D = 0.
+K_D = 0.5
 τ = 2.
 int_min = -0.01
 int_max =  0.01

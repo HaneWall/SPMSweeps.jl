@@ -37,7 +37,7 @@ function check_converged!(S::Welford_Buffer, measurement::Float64)
   S.variance_sum += (measurement + S.C[1] - S.mean - new_mean) * (measurement - S.C[1])
   S.mean = new_mean
   push!(S.C, measurement)
-  if log10(S.variance_sum/(S.window_size * S.mean)) <= S.var_tolerance
+  if sqrt(S.variance_sum/S.window_size) <= S.var_tolerance && S.mean 
     S.converged = true
   else
     S.converged = false
