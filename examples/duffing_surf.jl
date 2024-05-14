@@ -18,14 +18,14 @@ f = 0.0025
 # time params control
 Δ_t_ctrl = 0.05 # timestep for each control step
 μ_ctrl = 0.05 
-Δ_t_checker = 1500. # timestep in which we check convergence 
+Δ_t_checker = 800. # timestep in which we check convergence 
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
 harms = [1., 2., 3., 4.] # respected higher harmonics (DC always automatically included)
 K_P = 1.
 K_I = 0.04
-K_D = 0.
+K_D = 2.
 τ = 2.
 int_min = -0.5
 int_max =  0.5
@@ -165,7 +165,7 @@ end
 function plot_response_surface(ps::Array{S}, alphas::Array{Float64}; k=1) where S <: Any
     CairoMakie.activate!(type="svg")
     fig = Figure(
-        size = (508, 700), 
+        size = (508, 300), 
         fonts = (; regular = "Computer Modern"), 
         fontsize=12, 
         backgroundcolor=:white,
@@ -183,7 +183,7 @@ function plot_response_surface(ps::Array{S}, alphas::Array{Float64}; k=1) where 
         azimuth=-1.
     )
 
-    ax_phi = Axis3(fig[2, 1],
+    ax_phi = Axis3(fig[1, 2],
         xlabel=L"\omega_d/\omega_0", 
         ylabel=L"nonlinear coeffcient $\beta$",
         zlabel=L"phaselag first harmonic $\phi_1$",   

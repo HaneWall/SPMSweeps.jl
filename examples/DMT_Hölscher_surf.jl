@@ -1,4 +1,4 @@
-using SPMsweeps, StaticArrays, DifferentialEquations, CairoMakie, LinearAlgebra
+using SPMsweeps, StaticArrays, DifferentialEquations, CairoMakie, LinearAlgebra, ProgressLogging
 
 initial_condition = SVector(0., 0., 0.)
 
@@ -29,7 +29,7 @@ TARGETS = collect(range(-0.5, -2.6, length=120))
 err = 0.02
 
 # frequncy array that we would like to sweep through (not relevant for control)
-OMEGAS = collect(range(0.997, 1.003, length=60))
+OMEGAS = collect(range(0.997, 1.003, length=80))
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
@@ -42,6 +42,47 @@ int_min = -0.01
 int_max =  0.01
 ctrl_min = -0.011
 ctrl_max = 0.011
+
+# time params sweep
+Δ_t_filt = 0.05
+Δ_t_sweep = 12_000.
+μ_sweep = 0.05
+
+d_sweep = reverse(ds)[15]
+
+
+
+
+
+# for sweeps 
+CTRL_fwd = PID_Controller_Euler_FWD()
+FILT_fwd = LMS_Algorithm(μ_sweep, harms) 
+CHECK_fwd = Constant_Time_Check()
+
+CTRL_bwd = PID_Controller_Euler_FWD()
+FILT_bwd = LMS_Algorithm(μ_sweep, harms) 
+CHECK_bwd = Constant_Time_Check()
+
+
+fwd_problem = DMT_oscillator(k, f, OMEGAS[1], a_0, d_sweep, H, R, Q, nu_t, nu_s, E_t, E_s, OMEGAS, TARGETS, err, CTRL_fwd, FILT_fwd, CHECK_fwd)
+bwd_problem = DMT_oscillator(k, f, OMEGAS[end], a_0, d_sweep, H, R, Q, nu_t, nu_s, E_t, E_s, reverse(OMEGAS), TARGETS, err, CTRL_fwd, FILT_fwd, CHECK_fwd)
+
+
+# for sweep
+sweep_cb = PeriodicCallback(freq_sweep_cb!, Δ_t_sweep)
+filter_cb = PeriodicCallback(lms_cb!, Δ_t_filt)
+all_cb_sweep = CallbackSet(sweep_cb, filter_cb)
+
+t_span = (0, 1_400_000)
+
+## sweep forward 
+sweep_fwd_prob = ODEProblem(f_RHS, initial_condition, t_span, fwd_problem)
+sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
+
+
+## sweep backward
+sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
+sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
 
 
@@ -112,7 +153,7 @@ function plot_response_surface(ps::Array{S}, alphas::Array{Float64}; k=1) where 
         fontsize=12, 
         backgroundcolor=:white,
         framevisible=false
-    ) 
+    )
     ax_a = Axis3(fig[1, 1],
         xlabel=L"\omega_d/\omega_0", 
         ylabel=L"seperation distance $d$[nm]",
@@ -135,7 +176,7 @@ function plot_response_surface(ps::Array{S}, alphas::Array{Float64}; k=1) where 
         yreversed=false,
         xypanelvisible=false, yzpanelvisible=false, xzpanelvisible=false,
         azimuth=-1.
-    ) 
+    )
     for (idx, p) in enumerate(ps)
         omega_drivings = zeros(Float64, length(p.targets))
         phaselag_k = zeros(Float64, length(p.targets))
@@ -149,4 +190,131 @@ function plot_response_surface(ps::Array{S}, alphas::Array{Float64}; k=1) where 
         scatterlines!(ax_phi, omega_drivings, alpha, phaselag_k, color=(:navy, 0.4), markersize=3, linewidth=1.5)
     end
     fig
+end
+
+
+function simulation_figure_paper(ps::Array{S}, sweeps, alphas::Array{Float64}; k=1)  where S<:Any
+    fig = Figure(
+        size = (508, 300), 
+        fonts = (; regular = "CMU Serif"), 
+        fontsize=8, 
+        backgroundcolor=:white,
+        framevisible=false
+    )
+    panel_a = fig[1:2, 1] = GridLayout()
+    panel_b = fig[1:2, 2] = GridLayout()
+    panel_c = fig[1:2, 3] = GridLayout()
+
+    ax_panel_a = Axis3(panel_a[1, 1], 
+                xlabel=L"\omega_d/\omega_0", 
+                xlabeloffset=20,
+                ylabeloffset=20,
+                zlabeloffset=-120,
+                ylabel=L"$d$[nm]",
+                zlabel=L"$\phi_1$[rad]",   
+                xgridvisible = false, 
+                ygridvisible = false, 
+                zgridvisible = false,
+                yreversed=false,
+                xypanelvisible=false,
+                yzpanelvisible=false, 
+                xzpanelvisible=false,
+                azimuth=-1.
+    )
+
+    ax_panel_a_2 = Axis3(panel_a[2, 1], 
+                xlabel=L"\omega_d/\omega_0", 
+                ylabel=L"$d$[nm]",
+                zlabel=L"$A_1$[nm]", 
+                xlabeloffset=20,
+                ylabeloffset=20,
+                zlabeloffset=-120, 
+                xgridvisible = false, 
+                ygridvisible = false, 
+                zgridvisible = false,
+                yreversed=false,
+                xypanelvisible=false,
+                yzpanelvisible=false, 
+                xzpanelvisible=false,
+                azimuth=-1.
+)
+
+    ax_panel_b_1 = Axis(panel_b[1, 1], 
+                #xlabel=L"\omega_d/\omega_0", 
+                ylabel=L"phaselag $\phi_1$[rad]",
+                xticklabelsvisible=false,
+                xgridvisible=false,
+                ygridvisible=false
+                )
+   
+    ax_panel_b_2 =Axis(panel_b[2, 1],
+                xlabel=L"\omega_d/\omega_0", 
+                ylabel=L"amplitude $A_1$[nm]",
+                xgridvisible=false,
+                ygridvisible=false
+                )
+    linkxaxes!(ax_panel_b_1, ax_panel_b_2)
+    rowgap!(panel_b, 1)
+
+
+    ax_panel_c_targ = Axis(panel_c[1, 1],
+                ylabel=L"$\phi_1$[rad]"
+                )
+    ax_panel_c_freq = Axis(panel_c[2, 1],
+                xlabel=L"cycles at $\omega_0$",
+                ylabel=L"$\omega_d(t) / \omega_0$"
+                )
+
+    linkxaxes!(ax_panel_c_targ, ax_panel_c_freq)
+    #linkxaxes!(ax_panel_a, ax_panel_c)
+    #rowgap!(panel_d, 3)
+    rowgap!(panel_a, -35)
+
+    for (label, layout) in zip(["a", "b", "c"], [panel_a, panel_b, panel_c])
+        Label(layout[1, 1, TopLeft()], label,
+            fontsize = 12,
+            font = :bold,
+            padding = (0, 5, 5, 0),
+            halign = :right)
+    end
+
+    markersize_arr = [6, 4]
+    colors = [to_color("#66c2a5"), to_color("#fc8d62")]
+    labels= [L"Forward$$", L"Backward$$", L"Control$$"]
+    for (idx, sweep) in enumerate(sweeps)
+
+        omega_drivings = zeros(Float64, length(sweep.omegas))
+        phaselag_k = zeros(Float64, length(sweep.omegas))
+        amplitude_k = zeros(Float64, length(sweep.omegas))
+        omega_drivings .= sweep.matrix_harmonic_state_converged_sweep[1, :]
+        phaselag_k .= atan.(sweep.matrix_harmonic_state_converged_sweep[2*k+2, :], sweep.matrix_harmonic_state_converged_sweep[2*k+1, :])
+        amplitude_k .= norm.(sweep.matrix_harmonic_state_converged_sweep[2*k+2, :], sweep.matrix_harmonic_state_converged_sweep[2*k+1, :]) * 1.e9 
+        scatter!(ax_panel_b_1, omega_drivings, phaselag_k, markersize=markersize_arr[idx], color=colors[idx], label=labels[idx])
+        scatter!(ax_panel_b_2, omega_drivings, amplitude_k, markersize=markersize_arr[idx], color=colors[idx])
+    end
+    hlines!(ax_panel_b_1, linestyle=:dash, -1.07, linewidth=0.8, color=:black)
+
+    for (idx, p) in enumerate(reverse(ps))
+        omega_drivings = zeros(Float64, length(p.targets))
+        phaselag_k = zeros(Float64, length(p.targets))
+        amplitude_k = zeros(Float64, length(p.targets))
+        omega_drivings .= p.matrix_harmonic_state_converged_control[1, :]
+        phaselag_k .= atan.(p.matrix_harmonic_state_converged_control[2*k+2, :], p.matrix_harmonic_state_converged_control[2*k+1, :])
+        amplitude_k .= norm.(p.matrix_harmonic_state_converged_control[2*k+2, :], p.matrix_harmonic_state_converged_control[2*k+1, :]) * 1.e9
+        
+        alpha = ones(Float64, length(p.targets)) .* reverse(alphas)[idx] .* 1.e9
+        
+        if idx == 15 
+            scatterlines!(ax_panel_a, omega_drivings, alpha, phaselag_k, color=(:navy, 0.4), markersize=3, linewidth=1.5) 
+            scatterlines!(ax_panel_a_2, omega_drivings, alpha, amplitude_k, color=(:navy,0.4), markersize=3, linewidth=1.5)
+            scatterlines!(ax_panel_b_1, omega_drivings, phaselag_k, color=(:navy, 0.4), markersize=3, linewidth=1.5, label=L"Control$$") 
+            scatterlines!(ax_panel_b_2, omega_drivings, amplitude_k, color=(:navy, 0.4), markersize=3, linewidth=1.5) 
+        else 
+            scatterlines!(ax_panel_a_2, omega_drivings, alpha, amplitude_k, color=(:gray,0.6), markersize=1, linewidth=0.8)
+            scatterlines!(ax_panel_a, omega_drivings, alpha, phaselag_k, color=(:gray, 0.6), markersize=1, linewidth=0.8)
+        end
+    end
+    #axislegend(ax_panel_b_1)
+    fig
+
 end
