@@ -13,7 +13,6 @@ function ctrl_cb!(integrator)
   # here apply LMS to calcualte ϕ from measurement x[1], that is integrator.u[1]
   step_demodulation!(integrator.p.filter, integrator.u[1], integrator.u[3])
   ϕ = atan(integrator.p.filter.harmonic_state[3], integrator.p.filter.harmonic_state[2])
-
   step_controller!(integrator.p.ctrl, integrator.p.targets[integrator.p.target_idx], ϕ)
 end
 
@@ -43,7 +42,21 @@ function conv_cb!(integrator)
   if integrator.p.target_idx > length(integrator.p.targets)
     terminate!(integrator)
   end  
+end
 
+function conv_wf_cb!(integrator)
+  ϕ = atan(integrator.p.filter.harmonic_state[3], integrator.p.filter.harmonic_state[2])
+  check_converged!(integrator.p.checker, ϕ)
+  if integrator.p.checker.converged && abs(integrator.p.checker.mean - integrator.p.targets[integrator.p.target_idx]) < integrator.p.target_err
+    integrator.p.matrix_harmonic_state_converged_control[1, integrator.p.target_idx] = integrator.p.Ω_s + integrator.p.ctrl.output
+    integrator.p.matrix_harmonic_state_converged_control[2:end, integrator.p.target_idx] .= integrator.p.filter.harmonic_state
+    integrator.p.checker.counter_call = 1
+    integrator.p.target_idx += 1
+  end
+
+  if integrator.p.target_idx > length(integrator.p.targets)
+    terminate!(integrator)
+  end
 end
 
 """

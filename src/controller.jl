@@ -6,8 +6,6 @@ to Euler-forward or Euler-backward implementations, this discete PID essentially
 by trapezoidal approximations.
 
 PID controller, that contains Anti-Windup for the Integralterm and furthermore maximum and minimum output terms. 
-
-
 """
 mutable struct PID_Controller_Tustin <: Controller
     const Δt::Float64

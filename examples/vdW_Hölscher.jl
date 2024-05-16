@@ -16,21 +16,21 @@ f = 1.33e-9
 
 # time params sweep
 Δ_t_filt = 0.05
-Δ_t_sweep = 10_000.
+Δ_t_sweep = 1000.
 μ_sweep = 0.05
 
 # time params control
 Δ_t_ctrl = 0.05 # timestep for each control step
 μ_ctrl = 0.05 
-Δ_t_checker = 4000. # timestep in which we check convergence 
+Δ_t_checker = 8.3 # timestep in which we check convergence 
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
 harms = [1., 2., 3., 4.] # respected higher harmonics (DC always automatically included)
-K_P = 1.
+K_P = 0.1
 K_I = 0.001
-K_D = 0.
-τ = 2.
+K_D = 1.5
+τ = 5.
 int_min = -0.01
 int_max =  0.01
 ctrl_min = -0.011
@@ -40,7 +40,7 @@ ctrl_max = 0.011
 CTRL = PID_Controller_Tustin(Δ_t_ctrl, K_P, K_I, K_D, τ, int_min, int_max, ctrl_min, ctrl_max)
 #CTRL = PID_Controller_Euler_FWD(Δ_t_ctrl, K_P, K_I, K_D)
 FILT = LMS_Algorithm(μ_ctrl, harms)
-CHECK = Constant_Time_Check()
+CHECK = Welford_Buffer(80, 1e-4)
 
 # for sweeps 
 CTRL_fwd = PID_Controller_Euler_FWD()
@@ -52,7 +52,7 @@ FILT_bwd = LMS_Algorithm(μ_sweep, harms)
 CHECK_bwd = Constant_Time_Check()
 
 # targets for control (not relevant for sweeps)
-TARGETS = collect(range(-0.5, -2.6, length=120))
+TARGETS = collect(range(-1., -1.5, length=40))
 err = 0.02
 
 # frequncy array that we would like to sweep through (not relevant for control)
@@ -64,7 +64,7 @@ bwd_problem = vdW_oscillator(k, f, OMEGAS[end], a_0, d, H, R, Q,  reverse(OMEGAS
 
 # for control 
 control_cb = PeriodicCallback(ctrl_cb!, Δ_t_ctrl)
-convergence_cb = PeriodicCallback(conv_cb!, Δ_t_checker)
+convergence_cb = PeriodicCallback(conv_wf_cb!, Δ_t_checker)
 all_cb_control = CallbackSet(control_cb, convergence_cb)
 
 # for sweep
@@ -81,12 +81,12 @@ sweep_fwd_sol = solve(sweep_fwd_prob, callback=all_cb_sweep, save_everystep=fals
 
 ## sweep backward
 sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
-sweep_bwd_sol = solve(sweep_bwd_prob, callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
+@time sweep_bwd_sol = solve(sweep_bwd_prob, callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
 
 ## control sweep 
 control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 600_000), pll_problem)
-control_sol = solve(control_prob, callback=all_cb_control, save_everystep=false, maxiters=20_000_000)
+@time control_sol = solve(control_prob, callback=all_cb_control, save_everystep=false, maxiters=20_000_000)
 
 
 

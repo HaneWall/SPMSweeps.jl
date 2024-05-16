@@ -5,7 +5,7 @@ initial_condition = SVector(0., 0., 0.)
 # params from Hölscher and Schwartz
 H = 2.e-19
 a_0 = 0.3e-9
-d=8.5e-9
+d=9.7e-9
 R=10.e-9
 Q = 300
 k = 40
@@ -28,7 +28,7 @@ nu_t = 0.3
 # time params control
 Δ_t_ctrl = 0.08 # timestep for each control step
 μ_ctrl = 0.05 
-Δ_t_checker = 400. # timestep in which we check convergence 
+Δ_t_checker = 15.3 # timestep in which we check convergence 
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
@@ -46,7 +46,7 @@ ctrl_max = 0.011
 CTRL = PID_Controller_Tustin(Δ_t_ctrl, K_P, K_I, K_D, τ, int_min, int_max, ctrl_min, ctrl_max)
 #CTRL = PID_Controller_Euler_FWD(Δ_t_ctrl, K_P, K_I, K_D)
 FILT = LMS_Algorithm(μ_ctrl, harms)
-CHECK = Constant_Time_Check()
+CHECK = Welford_Buffer(40, 1e-2)
 
 # for sweeps 
 CTRL_fwd = PID_Controller_Euler_FWD()
@@ -70,7 +70,7 @@ bwd_problem = DMT_oscillator(k, f, OMEGAS[end], a_0, d, H, R, Q, nu_t, nu_s, E_t
 
 # for control 
 control_cb = PeriodicCallback(ctrl_cb!, Δ_t_ctrl)
-convergence_cb = PeriodicCallback(conv_cb!, Δ_t_checker)
+convergence_cb = PeriodicCallback(conv_wf_cb!, Δ_t_checker)
 all_cb_control = CallbackSet(control_cb, convergence_cb)
 
 # for sweep
@@ -91,8 +91,8 @@ t_span = (0, 800_000)
 
 
 ## control sweep 
-control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 100_000), pll_problem)
-@time control_sol = solve(control_prob, Tsit5(), callback=all_cb_control, save_everystep=false)
+control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 200_000), pll_problem)
+@time control_sol = solve(control_prob, Tsit5(), callback=all_cb_control, save_everystep=false, maxiters=8_500_000)
 
 
 

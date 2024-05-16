@@ -29,7 +29,7 @@ f = 1.55e-9
 harms = [1., 2., 3., 4.] # respected higher harmonics (DC always automatically included)
 K_P = 1.
 K_I = 0.001
-K_D = 0.
+K_D = 1.5
 τ = 2.
 int_min = -0.01
 int_max =  0.01
@@ -83,11 +83,11 @@ sweep_fwd_sol = solve(sweep_fwd_prob, callback=all_cb_sweep, save_everystep=fals
 sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
 sweep_bwd_sol = solve(sweep_bwd_prob, callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
-sol_fwd_matrix = 
+#sol_fwd_matrix = 
 
 ## control sweep 
-#control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 600_000), pll_problem)
-#control_sol = solve(control_prob, callback=all_cb_control, save_everystep=false, maxiters=20_000_000)
+control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 600_000), pll_problem)
+control_sol = solve(control_prob, callback=all_cb_control, save_everystep=false, maxiters=20_000_000)
 
 
 

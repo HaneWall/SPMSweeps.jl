@@ -5,7 +5,7 @@ initial_condition = SVector(0., 0., 0.)
 # params from Hölscher and Schwartz
 H = 2.e-19
 a_0 = 0.3e-9
-d = 128e-9
+d = 75e-9
 R =  10.e-9
 Q = 480
 k = 8
