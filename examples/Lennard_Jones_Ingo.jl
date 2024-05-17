@@ -9,7 +9,7 @@ V_0 = 4.2e-18
 # softening parameter
 δx = 0.0e-9
 # distance betweeen cantilever and surface/sample
-d = 30.e-9
+d = 100.e-9
 # Quality-factor of cantilever
 Q = 400.
 # spring constant of cantilever
@@ -17,7 +17,7 @@ k = 0.7
 # resonance frequency
 ω_0 =  50.e3 * 2π
 # friction parameter
-γ = 0.80e-31
+γ = 0.65e-31
 #forcing amplitude
 f= 120.e-9 / Q 
 
