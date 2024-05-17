@@ -9,7 +9,7 @@ function generate_cmap(n)
     end
 end
 
-function new_theme!()
+function theme!()
     set_theme!(;
         palette = (color = COLORS,), 
         fonts = (; regular = "Helvetica"),
@@ -96,7 +96,7 @@ function plot_sweeps_control(sweeps::Array{S}, controls::Array{S}; k=1) where S 
     CairoMakie.activate!(type="svg")
     fig = Figure(
         fontsize=7,
-        size = (125, 220), 
+        size = (220, 330), 
         ppt=300,
         pt_per_unit = 1,
     )
@@ -133,5 +133,45 @@ function plot_sweeps_control(sweeps::Array{S}, controls::Array{S}; k=1) where S 
         scatter!(ax_phi, omega_drivings[1:end], phaselag_k[1:end],marker = CMARKERS[n_counter], markersize=CMARKERSIZES[n_counter]) 
         n_counter+=1
     end
+    return fig
+end
+
+function plot_error_ctrl(p::Nanojunction, idx_min::Integer, idx_max::Integer; Δt=1.)
+    n_counter = 1
+    CairoMakie.activate!(type="svg")
+    fig = Figure(
+        fontsize=7,
+        size = (200, 110), 
+        ppt=300,
+        pt_per_unit = 1,
+    )
+    ax_err = Axis(fig[1, 1],
+        #xlabel=L"\omega_d/\omega_0", 
+        #ylabel=L"amplitude $A_k$", 
+        xgridvisible=false,
+        ygridvisible=false)
+    lines!(ax_err, p.error[idx_min:idx_max], linewidth=2)
+    ax_ctrl = Axis(fig[2, 1],
+        xgridvisible=false,
+        ygridvisible=false)
+    lines!(ax_ctrl, p.current_ctrl[idx_min:idx_max], linewidth=2)
+    return fig
+end
+
+function plot_error(p::Nanojunction, idx_min::Integer, idx_max::Integer; Δt=1.)
+    n_counter = 1
+    CairoMakie.activate!(type="svg")
+    fig = Figure(
+        fontsize=7,
+        size = (200, 110), 
+        ppt=300,
+        pt_per_unit = 1,
+    )
+    ax_err = Axis(fig[1, 1],
+        #xlabel=L"\omega_d/\omega_0", 
+        #ylabel=L"amplitude $A_k$", 
+        xgridvisible=false,
+        ygridvisible=false)
+    lines!(ax_err, p.error[idx_min:idx_max], linewidth=1)
     return fig
 end

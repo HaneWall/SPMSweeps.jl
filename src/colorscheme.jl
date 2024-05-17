@@ -14,27 +14,36 @@ end
 Base.iterate(c::CyclicContainer, i = 1) = iterate(c.c, i)
 Base.getindex(c::CyclicContainer, i) = [c[j] for j in i]
 
+
 # COLORS = [
-# "#272727",
-# "#0496ff",
-# "#f95738",
-# "#2cacc9",
-# "#885a89",
-# "#e09200",
-# "#dcddde"
+# "#377e7f",
+# "#8719cb",
+# "#f09235",
+# "crimson",
+# "nayv" 
 # ]
 
-
 COLORS = [
-    "#1B1B1B",
-    "#6D44D0",
-    "#2CB3BF",
-    "#DA5210",
-    "#03502A",
-    "#866373",
-    "white",
-    "blue",
+"darkgreen",
+"#f95738",
+"#272727",
+"#2cacc9",
+"#885a89",
+"#e09200",
+"#dcddde"
 ]
+
+
+# COLORS = [
+#     "#1B1B1B",
+#     "#6D44D0",
+#     "#2CB3BF",
+#     "#DA5210",
+#     "#03502A",
+#     "#866373",
+#     "white",
+#     "blue",
+# ]
 
 LINESTYLES = [
     '-', ':', "--", "-."
@@ -42,7 +51,7 @@ LINESTYLES = [
 
 
 MARKERS = [
-    :rtriangle,:ltriangle, :circle, :xcross, '□','∘',:diamond, :xcross, :utriangle, :dtriangle
+    :rtriangle,:ltriangle, :circle, :xcross, '□','∘', :xcross, :rtriangle, :ltriangle
 ]
 
 MARKERSIZES = [4, 4, 2]

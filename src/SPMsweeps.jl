@@ -9,7 +9,7 @@ include("controller.jl")
 export Controller, PID_Controller_Euler_FWD, PID_Controller_Tustin, step_controller!
 
 include("ODE_callbacks.jl")
-export ctrl_cb!, freq_sweep_cb!, conv_cb!, lms_cb!, saving_cb!, conv_wf_cb!
+export ctrl_cb!, freq_sweep_cb!, conv_cb!, lms_cb!, saving_cb_control!, conv_wf_cb!
 
 include("adaptive_filter.jl")
 export AdaptiveFilter, LMS_Algorithm, step_demodulation!
@@ -18,7 +18,7 @@ include("steadystate.jl")
 export SteadyStateChecker, Constant_Time_Check, Welford_Buffer, check_converged!
 
 include("nanojunctions.jl")
-export f_RHS, f_RHS_Ctrl, Nanojunction, Duffing_oscillator, vdW_oscillator, DMT_oscillator
+export f_RHS, f_RHS_Ctrl, Nanojunction, Duffing_oscillator, vdW_oscillator, DMT_oscillator, Lennard_Jones_oscillator
 
 include("styles.jl")
 export generate_cmap, theme!, plot_control, plot_sweeps, plot_sweep, plot_sweeps_control

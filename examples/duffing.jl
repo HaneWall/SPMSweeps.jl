@@ -20,18 +20,19 @@ f = 14
 Δ_t_ctrl = 0.05 # timestep for each control step
 μ_ctrl = 0.05 
 Δ_t_checker = 5.2 # timestep in which we check convergence 
+Δ_t_saver = 0.05
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
 harms = [1., 3., 5.] # respected higher harmonics (DC always automatically included)
-K_P = 10.
+K_P =10.
 K_I = 1.
-K_D = 4.
+K_D = 2.5
 τ = 2.
 int_min = -1.0
-int_max =  4.
+int_max =  0.9
 ctrl_min = -1.1
-ctrl_max = 4.1
+ctrl_max = 1.
 
 # for control 
 CTRL = PID_Controller_Tustin(Δ_t_ctrl, K_P, K_I, K_D, τ, int_min, int_max, ctrl_min, ctrl_max)
@@ -49,20 +50,22 @@ FILT_bwd = LMS_Algorithm(μ_sweep, harms)
 CHECK_bwd = Constant_Time_Check()
 
 # targets for control (not relevant for sweeps)
-TARGETS = collect(range(-0.45, -2.85, length=100))
+#TARGETS = collect(range(-0.45, -2.85, length=100))
+TARGETS = [-1.5, -2.]
 err = 0.02
 
 # frequncy array that we would like to sweep through (not relevant for control)
 OMEGAS = collect(range(1.8, 3.8, length=40))
 
-pll_problem = Duffing_oscillator(k_1, k_2, k_3, f, OMEGAS[1], OMEGAS, TARGETS, err, CTRL, FILT, CHECK)
+pll_problem = Duffing_oscillator(k_1, k_2, k_3, f, 3., OMEGAS, TARGETS, err, CTRL, FILT, CHECK)
 fwd_problem = Duffing_oscillator(k_1, k_2, k_3, f, OMEGAS[1], OMEGAS, TARGETS, err, CTRL_fwd, FILT_fwd, CHECK_fwd)
 bwd_problem = Duffing_oscillator(k_1, k_2, k_3, f, OMEGAS[end], reverse(OMEGAS), TARGETS, err, CTRL_bwd, FILT_bwd, CHECK_bwd)
 
 # for control 
 control_cb = PeriodicCallback(ctrl_cb!, Δ_t_ctrl)
 convergence_cb = PeriodicCallback(conv_wf_cb!, Δ_t_checker)
-all_cb_control = CallbackSet(control_cb, convergence_cb)
+save_cb =PeriodicCallback(saving_cb_control!, Δ_t_saver)
+all_cb_control = CallbackSet(control_cb, convergence_cb, save_cb)
 
 # for sweep
 sweep_cb = PeriodicCallback(freq_sweep_cb!, Δ_t_sweep)

@@ -21,8 +21,10 @@ end
 This will be a periodic callback, that is applied to
  save some outputs for plots
 """
-function saving_cb!(integrator)
-  nothing
+function saving_cb_control!(integrator)
+  ϕ = atan(integrator.p.filter.harmonic_state[3], integrator.p.filter.harmonic_state[2])
+  push!(integrator.p.error, integrator.p.targets[integrator.p.target_idx] - ϕ)
+  push!(integrator.p.current_ctrl, integrator.p.ctrl.output + integrator.p.Ω_s)
 end
 
 """
