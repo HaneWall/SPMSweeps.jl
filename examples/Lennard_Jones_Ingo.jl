@@ -7,9 +7,9 @@ initial_condition = SVector(0., 0., 0.)
 σ = 2.8e-9             
 V_0 = 4.2e-18
 # softening parameter
-δx = 0.5e-9
+δx = 0.0e-9
 # distance betweeen cantilever and surface/sample
-d = 60.e-9
+d = 30.e-9
 # Quality-factor of cantilever
 Q = 400.
 # spring constant of cantilever
@@ -17,9 +17,9 @@ k = 0.7
 # resonance frequency
 ω_0 =  50.e3 * 2π
 # friction parameter
-γ = 1.e-31
+γ = 0.80e-31
 #forcing amplitude
-f= 170.e-9 / Q 
+f= 120.e-9 / Q 
 
 
 
@@ -85,13 +85,13 @@ all_cb_sweep = CallbackSet(sweep_cb, filter_cb)
 t_span = (0, 800_000)
 
 ## sweep forward 
-sweep_fwd_prob = ODEProblem(f_RHS, initial_condition, t_span, fwd_problem)
-@time sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
+#sweep_fwd_prob = ODEProblem(f_RHS, initial_condition, t_span, fwd_problem)
+#@time sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
 
 ## sweep backward
-sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
-sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
+#sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
+#sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 
 
 ## control sweep 
