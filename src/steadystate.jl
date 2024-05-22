@@ -21,17 +21,17 @@ end
 mutable struct Welford_Buffer <: SteadyStateChecker
   const N::Integer # window size of CircularBuffer
   mean::Float64
-  variance_sum::Float64 
+  variance_sum::Float64
   converged::Bool
   std_tolerance::Float64
   C::CircularBuffer{Float64}
   counter_call::Integer
   function Welford_Buffer(N, std_tolerance)
     c = CircularBuffer{Float64}(N)
-    fill!(c, 0.)
-   new(
-    N, 0., 0., false, std_tolerance, c, 1 
-   ) 
+    fill!(c, 0.0)
+    new(
+      N, 0.0, 0.0, false, std_tolerance, c, 1
+    )
   end
 end
 
@@ -41,7 +41,7 @@ function check_converged!(S::Welford_Buffer, measurement::Float64)
   S.mean = new_mean
   push!(S.C, measurement)
   S.counter_call += 1
-  if sqrt(S.variance_sum/S.N) <= S.std_tolerance && S.counter_call > S.N
+  if sqrt(S.variance_sum / S.N) <= S.std_tolerance && S.counter_call > S.N
     S.converged = true
   else
     S.converged = false

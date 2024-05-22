@@ -1,6 +1,6 @@
 function create_bases_psi(harmonic_order::Array{Float64})
   bases = Function[]
-  push!(bases, psi -> 1/2)
+  push!(bases, psi -> 1 / 2)
   @inbounds for harmonic in harmonic_order
     push!(bases, psi -> sin(harmonic * psi))
     push!(bases, psi -> cos(harmonic * psi))
@@ -19,7 +19,7 @@ end
 end
 
 @inline function update_weights!(w::Array{Float64}, b::Array{Float64}, data::Float64, mu::Float64)
-  fact = 1. / 5. #inv(dot(b, b))
+  fact = 1.0 / 5.0 #inv(dot(b, b))
   error = error_lms(data, w, b)
   @inbounds for idx in eachindex(w)
     w[idx] += mu * fact * error * b[idx]
