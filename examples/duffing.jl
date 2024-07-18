@@ -1,12 +1,12 @@
 using SPMsweeps
 using StaticArrays, DifferentialEquations, CairoMakie, LinearAlgebra, DiffEqCallbacks, ProgressLogging, BenchmarkTools
 
-initial_condition = SVector(0., 0., 0.)
+initial_condition = SVector(0.0, 0.0, 0.0)
 
 # params duffing 
-k_1 = 1. 
-k_2 = 1.
-k_3 = 1.
+k_1 = 1.0
+k_2 = 1.0
+k_3 = 1.0
 Ω_s = 1.5
 f = 14
 
@@ -18,21 +18,21 @@ f = 14
 
 # time params control
 Δ_t_ctrl = 0.05 # timestep for each control step
-μ_ctrl = 0.05 
+μ_ctrl = 0.05
 Δ_t_checker = 5.2 # timestep in which we check convergence 
 Δ_t_saver = 0.05
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
-harms = [1., 3., 5.] # respected higher harmonics (DC always automatically included)
-K_P =10.
-K_I = 1.
+harms = [1.0, 3.0, 5.0] # respected higher harmonics (DC always automatically included)
+K_P = 10.0
+K_I = 1.0
 K_D = 2.5
-τ = 2.
+τ = 2.0
 int_min = -1.0
-int_max =  0.9
+int_max = 0.9
 ctrl_min = -1.1
-ctrl_max = 1.
+ctrl_max = 1.0
 
 # for control 
 CTRL = PID_Controller_Tustin(Δ_t_ctrl, K_P, K_I, K_D, τ, int_min, int_max, ctrl_min, ctrl_max)
@@ -42,29 +42,29 @@ CHECK = Welford_Buffer(30, 1e-4)
 
 # for sweeps 
 CTRL_fwd = PID_Controller_Euler_FWD()
-FILT_fwd = LMS_Algorithm(μ_sweep, harms) 
+FILT_fwd = LMS_Algorithm(μ_sweep, harms)
 CHECK_fwd = Constant_Time_Check()
 
 CTRL_bwd = PID_Controller_Euler_FWD()
-FILT_bwd = LMS_Algorithm(μ_sweep, harms) 
+FILT_bwd = LMS_Algorithm(μ_sweep, harms)
 CHECK_bwd = Constant_Time_Check()
 
 # targets for control (not relevant for sweeps)
 #TARGETS = collect(range(-0.45, -2.85, length=100))
-TARGETS = [-1.5, -2.]
+TARGETS = [-1.5, -2.0]
 err = 0.02
 
 # frequncy array that we would like to sweep through (not relevant for control)
 OMEGAS = collect(range(1.8, 3.8, length=40))
 
-pll_problem = Duffing_oscillator(k_1, k_2, k_3, f, 3., OMEGAS, TARGETS, err, CTRL, FILT, CHECK)
+pll_problem = Duffing_oscillator(k_1, k_2, k_3, f, 3.0, OMEGAS, TARGETS, err, CTRL, FILT, CHECK)
 fwd_problem = Duffing_oscillator(k_1, k_2, k_3, f, OMEGAS[1], OMEGAS, TARGETS, err, CTRL_fwd, FILT_fwd, CHECK_fwd)
 bwd_problem = Duffing_oscillator(k_1, k_2, k_3, f, OMEGAS[end], reverse(OMEGAS), TARGETS, err, CTRL_bwd, FILT_bwd, CHECK_bwd)
 
 # for control 
 control_cb = PeriodicCallback(ctrl_cb!, Δ_t_ctrl)
 convergence_cb = PeriodicCallback(conv_wf_cb!, Δ_t_checker)
-save_cb =PeriodicCallback(saving_cb_control!, Δ_t_saver)
+save_cb = PeriodicCallback(saving_cb_control!, Δ_t_saver)
 all_cb_control = CallbackSet(control_cb, convergence_cb, save_cb)
 
 # for sweep
@@ -81,7 +81,7 @@ sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_every
 
 ## sweep backward
 sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
-@time sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(),callback=all_cb_sweep, save_everystep=false, maxiters=3_000_000)
+@time sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=3_000_000)
 
 
 ## control sweep 
@@ -123,7 +123,7 @@ control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 100_000), pll_probl
 #     end
 #     fig
 #   end
-  
+
 #   function plot_control(ps::Array{S}; k=1) where S <: Nanojunction
 #     CairoMakie.activate!(type="svg")
 #     fig = Figure(
@@ -142,7 +142,7 @@ control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 100_000), pll_probl
 #         ylabel=L"phaselag $k$th harmonic $\phi_k$", 
 #         xgridvisible=false,
 #         ygridvisible=false)
-  
+
 #     for p in ps
 #         omega_drivings = zeros(Float64, length(p.targets))
 #         phaselag_k = zeros(Float64, length(p.targets))
@@ -155,4 +155,4 @@ control_prob = ODEProblem(f_RHS_Ctrl, initial_condition, (0, 100_000), pll_probl
 #     end
 #     fig
 #   end
-  
+

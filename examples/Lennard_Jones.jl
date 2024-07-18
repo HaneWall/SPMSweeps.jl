@@ -30,17 +30,18 @@ f = 120.e-9 / Q
 μ_sweep = 0.05
 
 # time params control
-Δ_t_ctrl = 0.08 # timestep for each control step
+Δ_t_ctrl = 0.1 # timestep for each control step
 μ_ctrl = 0.05
 Δ_t_checker = 15.3 # timestep in which we check convergence 
+Δ_t_saver = 0.05
 
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
 harms = [1.0, 2.0, 3.0, 4.0] # respected higher harmonics (DC always automatically included)
-K_P = 0.1
-K_I = 0.001
-K_D = 1.5
-τ = 5.0
+K_P = 0.4
+K_I = 0.004
+K_D = 0.0
+τ = 2.0
 int_min = -0.05
 int_max = 0.05
 ctrl_min = -0.051
@@ -50,7 +51,7 @@ ctrl_max = 0.051
 CTRL = PID_Controller_Tustin(Δ_t_ctrl, K_P, K_I, K_D, τ, int_min, int_max, ctrl_min, ctrl_max)
 #CTRL = PID_Controller_Euler_FWD(Δ_t_ctrl, K_P, K_I, K_D)
 FILT = LMS_Algorithm(μ_ctrl, harms)
-CHECK = Welford_Buffer(40, 1e-3)
+CHECK = Welford_Buffer(40, 1e-5)
 
 # for sweeps 
 CTRL_fwd = PID_Controller_Euler_FWD()
@@ -63,10 +64,10 @@ CHECK_bwd = Constant_Time_Check()
 
 # targets for control (not relevant for sweeps)
 TARGETS = collect(range(-0.2, -2.85, length=60))
-err = 0.02
+err = 0.0005
 
 # frequncy array that we would like to sweep through (not relevant for control)
-OMEGAS = collect(range(0.985, 1.015, length=60))
+OMEGAS = collect(range(0.989, 1.011, length=60))
 
 pll_problem = Lennard_Jones_oscillator(k, f, V_0, γ, OMEGAS[1], d, σ, Q, δx, ω_0, OMEGAS, TARGETS, err, CTRL, FILT, CHECK)
 fwd_problem = Lennard_Jones_oscillator(k, f, V_0, γ, OMEGAS[1], d, σ, Q, δx, ω_0, OMEGAS, TARGETS, err, CTRL_fwd, FILT_fwd, CHECK_fwd)
@@ -75,7 +76,8 @@ bwd_problem = Lennard_Jones_oscillator(k, f, V_0, γ, OMEGAS[end], d, σ, Q, δx
 # for control 
 control_cb = PeriodicCallback(ctrl_cb!, Δ_t_ctrl)
 convergence_cb = PeriodicCallback(conv_wf_cb!, Δ_t_checker)
-all_cb_control = CallbackSet(control_cb, convergence_cb)
+save_cb = PeriodicCallback(saving_cb_control!, Δ_t_saver)
+all_cb_control = CallbackSet(control_cb, convergence_cb, save_cb)
 
 # for sweep
 sweep_cb = PeriodicCallback(freq_sweep_cb!, Δ_t_sweep)
@@ -89,7 +91,7 @@ sweep_fwd_prob = ODEProblem(f_RHS, initial_condition, t_span, fwd_problem)
 sweep_fwd_sol = solve(sweep_fwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 println("1st Sweep done")
 
-## sweep backward
+# ## sweep backward
 sweep_bwd_prob = ODEProblem(f_RHS, initial_condition, t_span, bwd_problem)
 sweep_bwd_sol = solve(sweep_bwd_prob, Tsit5(), callback=all_cb_sweep, save_everystep=false, maxiters=100_000_000)
 println("2nd Sweep done")

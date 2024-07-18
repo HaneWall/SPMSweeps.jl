@@ -37,10 +37,10 @@ f = 120.e-9 / Q
 
 μ = Δ_t_ctrl # stepsize LMS (tends to be equal to sample time of control)
 harms = [1.0, 2.0, 3.0, 4.0] # respected higher harmonics (DC always automatically included)
-K_P = 0.1
-K_I = 0.001
-K_D = 1.5
-τ = 5.0
+K_P = 0.4
+K_I = 0.004
+K_D = 0.0
+τ = 2.0
 int_min = -0.05
 int_max = 0.05
 ctrl_min = -0.051

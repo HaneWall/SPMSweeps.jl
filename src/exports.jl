@@ -12,4 +12,4 @@ export
   #Right hand side
   f_RHS, f_RHS_Ctrl, Nanojunction, Duffing_oscillator, vdW_oscillator, DMT_oscillator, Lennard_Jones_oscillator,
   #colors
-  generate_cmap, theme!, plot_control, plot_sweeps, plot_sweep, plot_sweeps_control, save_fig
+  generate_cmap, theme!, plot_control, plot_sweeps, plot_sweep, plot_sweeps_control, save_fig, plot_error_ctrl

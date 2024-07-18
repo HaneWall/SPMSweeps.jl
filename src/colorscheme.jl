@@ -35,15 +35,25 @@ Base.getindex(c::CyclicContainer, i) = [c[j] for j in i]
 
 
 COLORS = [
-  "#1B1B1B",
-  "#6D44D0",
-  "#2CB3BF",
-  "#DA5210",
-  "#03502A",
-  "#866373",
-  "white",
-  "blue",
+  "#0d7d87",
+  "#99c6cc",
+  "#ff5a5e",
+  "#c31e23",
+  "#4a2377",
 ]
+
+
+
+# COLORS = [
+#   "#1B1B1B",
+#   "#6D44D0",
+#   "#2CB3BF",
+#   "#DA5210",
+#   "#03502A",
+#   "#866373",
+#   "white",
+#   "blue",
+# ]
 
 LINESTYLES = [
   '-', ':', "--", "-."
